@@ -2,6 +2,8 @@ __pycache__
 venv
 config.json
 
-#exclude all pdf files but .gitkeep in folder
+#exclude all pdf files but .gitkeep in below folders
 docs/downloaded_pdfs/*
+docs/downloaded_pdfs_outliers/*
 !downloaded_pdfs/.gitkeep
+!docs/downloaded_pdfs_outliers/.gitkeep
