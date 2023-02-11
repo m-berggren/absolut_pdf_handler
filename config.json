@@ -1,7 +1,7 @@
 {
     "directories":
     {
-        "pdf_dir": "{your directory where PDFs are stored}",
+        "pdf_dir": {your directory where PDFs are stored},
         "db_file": "{location of .db file}",
         "log_file": "{logging filename}"
     },
