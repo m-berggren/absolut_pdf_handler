@@ -1,18 +1,18 @@
 {
     "directories":
     {
-        "pdf_dir": "{your directory where PDFs are stored}",
-        "db_file": "{location of .db file}",
-        "log_file": "{logging filename}"
+        "pdf_dir": "docs/downloaded_pdfs",
+        "db_file": "C:/Users/Marcus/Documents/python-projects/sqlite-dbs/sqlite_absolut.db",
+        "log_file": "bookings.log"
     },
     "outlook":
     {
-        "email": "{email address}",
-        "folder1": "{Folder1}",
-        "folder2": "{Subfolder2}",
-        "folder3": "{Subfolder3}",
-        "folder4": "{Subfolder4}",
-        "folder5": "{Subfolder5}",
-        "move_to_folder": "{where to move handled e-mails}"
+        "email": "xpf@gsolutions.se",
+        "folder1": "Inkorg",
+        "folder2": "1. SERVICE",
+        "folder3": "GSX",
+        "folder4": "SEAHU",
+        "folder5": "ABSOLUT",
+        "move_to_folder": "Db"
     }
 }

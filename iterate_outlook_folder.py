@@ -49,10 +49,10 @@ def download_pdfs_in_folder():
 
                     for attachment in mail.Attachments:
                         attachment.SaveAsFile(os.path.join(save_as_path, attachment.FileName))
-                        try:
-                            mail.Move(move_to_folder)
-                        except Exception:
-                            print(f"Cannot move file to {TO_FOLDER}")
+                        #try:
+                        #    mail.Move(move_to_folder)
+                        #except Exception:
+                        #    print(f"Cannot move file to {TO_FOLDER}")
                 else: continue
 
     else:
