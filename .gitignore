@@ -4,7 +4,7 @@ config.json
 #bookings.log
 
 # exclude everything
-downloaded_pdfs/*
+docs/downloaded_pdfs/*
 
 # exception to the rule
 !downloaded_pdfs/.gitkeep
