@@ -18,7 +18,7 @@ FOLDER3 = outlook['folder3']
 FOLDER4 = outlook['folder4']
 FOLDER5 = outlook['folder5']
 TO_FOLDER = outlook['move_to_folder']
-SAVE_AS_PATH = directories['outl_save_dir']
+PDF_DIR = directories['pdf_dir'].replace("/", "\\")
 
 def download_pdfs_in_folder():
     """
@@ -33,6 +33,8 @@ def download_pdfs_in_folder():
     iter_folder = mapi.Folders[EMAIL_ACCOUNT].Folders[FOLDER1].Folders[FOLDER2].Folders[FOLDER3].Folders[FOLDER4].Folders[FOLDER5]
     move_to_folder = iter_folder.Folders[TO_FOLDER]
 
+    save_as_path = os.path.join(ROOT_DIR, PDF_DIR)
+
     mail_count = iter_folder.Items.Count
 
     if mail_count > 0:
@@ -46,7 +48,7 @@ def download_pdfs_in_folder():
                 if mail.Attachments.Count > 0:
 
                     for attachment in mail.Attachments:
-                        attachment.SaveAsFile(os.path.join(SAVE_AS_PATH, attachment.FileName))
+                        attachment.SaveAsFile(os.path.join(save_as_path, attachment.FileName))
                         try:
                             mail.Move(move_to_folder)
                         except Exception:
