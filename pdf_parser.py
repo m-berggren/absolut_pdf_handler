@@ -93,32 +93,32 @@ def pdf_parser(pdf):
     try:
         ref = ref + (0, 9, 40, 13)
     except TypeError as error:
-        return error
+        print(error)
 
     try:
         pkg = pkg + (204, 0, 230, 0)
     except TypeError as error:
-        return error
+        print(error)
 
     try:
         nwt = nwt + (300, 0, 261, 0)
     except TypeError as error:
-        return error
+        print(error)
 
     try:
         equ = equ + (42, 0, 84, 0)
     except TypeError as error:
-        return error
+        print(error)
 
     try:
         mrn = mrn + (48, 0, 114, 0)
     except TypeError as error:
-        return error
+        print(error)
 
     try:
         abs = abs + (0, 8, 0, 13)
     except TypeError as error:
-        return error
+        print(error)
 
     def get_word_in_rect(rect):
         """ 
