@@ -1,3 +1,10 @@
 __pycache__
 venv
 config.json
+bookings.log
+
+# exclude everything
+downloaded_pdfs/*
+
+# exception to the rule
+!downloaded_pdfs/.gitkeep 
