@@ -2,6 +2,8 @@ import json
 import os
 import sqlite3
 
+import logging_file
+
 def create_connection(db_file):
     """
     Create a database conneciton to a SQLite database.
@@ -34,28 +36,38 @@ def create_table(conn, create_table_sql):
     except sqlite3.Error as e:
         print(e)
 
-def create_booking(conn, booking):
+def create_booking(conn, booking, log_filename):
     """
     Create a new booking into the bookings table,
     or if equ exists then update entire row.
+    Prints data to a log file, with 'NEW' or 'UPDATE'.
 
     :param conn: connection to the SQLite database.
     :param booking: data from 'pdf_parser.py'.
+    :param log_filename: logging name from 'config.json'.
     :return: booking id.
     """
 
     cur = conn.cursor()
     cur.execute("SELECT id FROM bookings WHERE equ = ?", (booking[1],))
     data = cur.fetchone()
+    m = booking
 
     if data is None:
         sql = ''' INSERT INTO bookings(ref, equ, nwt, mrn, pkg, abs)
                 VALUES(?, ?, ?, ?, ?, ?) '''
         cur.execute(sql, booking)
         conn.commit()
+        debug_format = f"NEW:    | {m[0]:<13} | {m[1]:11} | {m[2]:<5.2f} | {m[3]:18} | {m[4]:<4} | {m[5]:8}"
 
     elif data:
         update_booking(conn, booking)
+        debug_format = f"UPDATE: | {m[0]:<13} | {m[1]:11} | {m[2]:<5.2f} | {m[3]:18} | {m[4]:<4} | {m[5]:8}"
+
+    else:
+        pass   
+    
+    #logging_file.debug_logger(debug_format, log_filename)
 
     return cur.lastrowid
 

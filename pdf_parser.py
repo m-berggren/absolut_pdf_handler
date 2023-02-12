@@ -3,8 +3,6 @@ import os
 
 import fitz
 
-import logging_file
-
 def pdf_parser(pdf):
     """
     Goes through a PDF file and gather below data in two steps:
@@ -177,36 +175,19 @@ def pdf_parser(pdf):
     return booking_dict
 
     
-def create_booking(pdf_name, cfg_log_filename):
+def create_booking(pdf_name):
     """
     Calls the pdf_parser() function, return data in tuple for SQLite Db.
-    Also writes all data to a log file.
     
     :param pdf_name: name of the PDF file to be used.
-    :param cfg_log_filename: logging name from 'config.json'.
     :return: (ref, equ, nwt, mrn, pkg, abs) returned in a tuple.
     """
 
     m = pdf_parser(pdf_name)
     data = (m['ref'], m['equ'], m['nwt'], m['mrn'], m['pkg'], m['abs'])
-    logging_file.debug_logger(data, cfg_log_filename)
 
     return data
 
-
-def update_booking(pdf_name, cfg_log_filename):
-    """ 
-    Almost identical to 'create booking'-function, the returned tuple is instead:
-    
-    :param pdf_name: name of the PDF file to be used.
-    :param cfg_log_filename: logging name from 'config.json'.
-    :return: (ref, equ, nwt, mrn, pkg, abs, equ) returned in a tuple.
-    """
-    m = pdf_parser(pdf_name)
-    data = (m['ref'], m['nwt'], m['mrn'], m['pkg'], m['abs'], m['equ'])
-    logging_file.debug_logger(data, cfg_log_filename)
-
-    return data
 
 if __name__ == '__main__':
     #print(pdf_parser(r'(1) 51062492_149033S.pdf')) #file is faulty, missing ref. Good practise example.

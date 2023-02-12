@@ -32,14 +32,17 @@ def loop_all_pdfs(conn, directory):
         .mode column
         SELECT * FROM bookings;
     """
-
+    print(f'{"REF":<13} | {"EQU":<11} | {"NWT":8} | {"MRN":<18} | {"PKG":<4} | {"ABS":<8}')
+    
     for filename in os.listdir(directory):
 
         if filename.endswith('.pdf') and filename.startswith('(1)'):
-            booking = pdf_parser.create_booking(filename, log_filename)
+            booking = pdf_parser.create_booking(filename)
+
             if booking[1]:
-                sqlite_db.create_booking(conn, booking)
-                print(booking)
+                sqlite_db.create_booking(conn, booking, log_filename)
+                print(f'{booking[0]:<13} | {booking[1]:<11} | {booking[2]:<5.2f} | {booking[3]:18} | {booking[4]:<4} | {booking[5]:8}')
+
             else:
                 continue
         else:

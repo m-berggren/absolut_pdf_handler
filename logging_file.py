@@ -13,7 +13,9 @@ def debug_logger(values, filename):
     logging.basicConfig(
         filename=filename,
         encoding='utf-8',
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        format='%(asctime)s | %(message)s',
         level=logging.DEBUG
         )
     logging.debug(values)
+
+    #%(levelname)s | 
