@@ -33,7 +33,7 @@ def loop_all_pdfs(conn, directory):
         SELECT * FROM bookings;
     """
     print(f'{"REF":<13} | {"EQU":<11} | {"NWT":8} | {"MRN":<18} | {"PKG":<4} | {"ABS":<8}')
-    
+
     for filename in os.listdir(directory):
 
         if filename.endswith('.pdf') and filename.startswith('(1)'):

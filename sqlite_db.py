@@ -58,16 +58,16 @@ def create_booking(conn, booking, log_filename):
                 VALUES(?, ?, ?, ?, ?, ?) '''
         cur.execute(sql, booking)
         conn.commit()
-        debug_format = f"NEW:    | {m[0]:<13} | {m[1]:11} | {m[2]:<5.2f} | {m[3]:18} | {m[4]:<4} | {m[5]:8}"
+        debug_format = f"NEW:    | {m[0]:<13} | {m[1]:11} | {str(m[2]):<9} | {m[3]:18} | {m[4]:<4} | {m[5]:8}"
 
     elif data:
         update_booking(conn, booking)
-        debug_format = f"UPDATE: | {m[0]:<13} | {m[1]:11} | {m[2]:<5.2f} | {m[3]:18} | {m[4]:<4} | {m[5]:8}"
+        debug_format = f"UPDATE: | {m[0]:<13} | {m[1]:11} | {str(m[2]):<9} | {m[3]:18} | {m[4]:<4} | {m[5]:8}"
 
     else:
         pass   
     
-    #logging_file.debug_logger(debug_format, log_filename)
+    logging_file.debug_logger(debug_format, log_filename)
 
     return cur.lastrowid
 
