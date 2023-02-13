@@ -5,5 +5,7 @@ config.json
 #exclude all pdf files but .gitkeep in below folders
 docs/downloaded_pdfs/*
 docs/downloaded_pdfs_outliers/*
+docs/parsed_pdfs/*
 !downloaded_pdfs/.gitkeep
 !docs/downloaded_pdfs_outliers/.gitkeep
+!docs/parsed_pdfs/.gitkeep
