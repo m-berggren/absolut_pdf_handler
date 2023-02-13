@@ -69,7 +69,7 @@ def create_booking(conn, booking, log_filename):
                 VALUES(?, ?, ?, ?, ?, ?, ?) '''
         cur.execute(sql, booking)
         conn.commit()
-        debug_format = f'{"NEW:":>12}|{m[0]:^15}|{m[1]:^13}|{nwt:^10}|{m[3]:^20}|{m[4]:^6}|{m[5]:^10}|{m[6]:^12}'
+        debug_format = f'{"NEW:":>12}|{m[0]:^14}|{m[1]:^13}|{nwt:^10}|{m[3]:^20}|{m[4]:^6}|{m[5]:^10}|{m[6]:^12}'
 
     elif exists_abs:
         return
@@ -79,19 +79,19 @@ def create_booking(conn, booking, log_filename):
         nwt_upd = f'{info["nwt"][0]:5.2f}'.rjust(8)
         pkg_upd = info["pkg"][0]
 
-        debug_format = f'{"ADDED:":>12}|{m[0]:^15}|{m[1]:^13}|{nwt:^10}|{m[3]:^20}|{m[4]:^6}|{m[5]:^10}|{m[6]:^12}{nl}\
-                        |{"NEW VALUES:":>13}|{" ":15}|{" ":13}|{nwt_upd:^10}|{" ":20}|{pkg_upd:^6}|{" ":10}|{ " ":12}'
+        debug_format = f'{"ADDED:":>12}|{m[0]:^14}|{m[1]:^13}|{nwt:^10}|{m[3]:^20}|{m[4]:^6}|{m[5]:^10}|{m[6]:^12}{nl}\
+                        |{"NEW VALUES:":>13}|{" ":14}|{" ":13}|{nwt_upd:^10}|{" ":20}|{pkg_upd:^6}|{" ":10}|{ " ":12}'
 
     elif exists_equ:
         update_booking(conn, booking)
-        debug_format = f'{"OVERWRITE:":>12}|{m[0]:^15}|{m[1]:^13}|{m[2]:^10}|{m[3]:^20}|{m[4]:^6}|{m[5]:^10}|{m[6]:^12}'
+        debug_format = f'{"OVERWRITE:":>12}|{m[0]:^14}|{m[1]:^13}|{m[2]:^10}|{m[3]:^20}|{m[4]:^6}|{m[5]:^10}|{m[6]:^12}'
 
     else:
         return  
 
     if not os.path.exists(log_filename):
         with open(log_filename, 'w') as f:
-            f.write(f'{"DATE & TIME:":^24}|{"STATUS:":^13}|{"REF:":^15}|{"EQU:":^13}|{"NWT:":^10}|{"MRN:":^20}|{"PKG:":^6}|{"ABS:":^10}|{"DAT:":^12}{nl}')
+            f.write(f'{"DATE & TIME:":^24}|{"STATUS:":^13}|{"REF:":^14}|{"EQU:":^13}|{"NWT:":^10}|{"MRN:":^20}|{"PKG:":^6}|{"ABS:":^10}|{"DAT:":^12}{nl}')
 
     logging_file.debug_logger(debug_format, log_filename)
 
@@ -150,9 +150,9 @@ def update_booking_3_param(conn, booking):
                         booking[1],
                         booking[6]))
 
-    cur.execute("SELECT nwt FROM bookings WHERE ref = ? AND equ = ? AND dat = ?", (booking[0], booking[1], booking[6],))
+    cur.execute("SELECT nwt FROM bookings WHERE equ = ? AND dat = ?", (booking[1], booking[6],))
     nwt = cur.fetchone()
-    cur.execute("SELECT pkg FROM bookings WHERE ref = ? AND equ = ? AND dat = ?", (booking[0], booking[1], booking[6],))
+    cur.execute("SELECT pkg FROM bookings WHERE equ = ? AND dat = ?", (booking[1], booking[6],))
     pkg = cur.fetchone()               
     conn.commit()
 
