@@ -17,5 +17,3 @@ def debug_logger(values, filename):
         level=logging.DEBUG
         )
     logging.debug(values)
-
-    #%(levelname)s | 

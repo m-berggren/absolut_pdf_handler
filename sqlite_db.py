@@ -38,6 +38,13 @@ def create_table(conn, create_table_sql):
 
 def create_booking(conn, booking, log_filename):
     """
+    Create_booking does several things:
+        - If equ does not exist it creates a new row in Db and write to log file.
+        - If abs already exists it will not add to Db or log file.
+        - If ref, equ and dat exists it will increment values of nwt and pkg in Db.
+          It will add "ADD NWT,PKG:" to log file but not the incremented values.
+
+
     Create a new booking into the bookings table,
     or if equ exists then update entire row.
     Prints data to a log file, with 'NEW' or 'UPDATE'.
@@ -50,26 +57,52 @@ def create_booking(conn, booking, log_filename):
 
     cur = conn.cursor()
     cur.execute("SELECT id FROM bookings WHERE equ = ?", (booking[1],))
-    data = cur.fetchone()
-    m = booking
+    exists_equ = cur.fetchone()
 
-    if data is None:
-        sql = ''' INSERT INTO bookings(ref, equ, nwt, mrn, pkg, abs)
-                VALUES(?, ?, ?, ?, ?, ?) '''
+    cur.execute("SELECT id FROM bookings WHERE abs = ?", (booking[5],))
+    exists_abs = cur.fetchone()
+
+    cur.execute("SELECT id FROM bookings WHERE ref = ? AND equ = ? AND dat = ?", (booking[0], booking[1], booking[6],))
+    exists_ref_equ_dat = cur.fetchone()
+    
+    m = booking
+    nl = "\n"
+    nwt_upd, pkg_upd = "", ""
+    nwt = f'{m[2]:5.2f}'.rjust(8)
+
+    if exists_equ is None:
+        sql = ''' INSERT INTO bookings(ref, equ, nwt, mrn, pkg, abs, dat)
+                VALUES(?, ?, ?, ?, ?, ?, ?) '''
         cur.execute(sql, booking)
         conn.commit()
-        debug_format = f"NEW:    | {m[0]:<13} | {m[1]:11} | {str(m[2]):<9} | {m[3]:18} | {m[4]:<4} | {m[5]:8}"
+        debug_format = f'{"NEW:":>12}|{m[0]:^15}|{m[1]:^13}|{nwt:^10}|{m[3]:^20}|{m[4]:^6}|{m[5]:^10}|{m[6]:^12}'
 
-    elif data:
+    elif exists_abs:
+        return
+
+    elif exists_ref_equ_dat:
+        info = update_booking_3_param(conn, booking)
+        nwt_upd = f'{info["nwt"][0]:5.2f}'.rjust(8)
+        pkg_upd = info["pkg"][0]
+
+        debug_format = f'{"ADDED:":>12}|{m[0]:^15}|{m[1]:^13}|{nwt:^10}|{m[3]:^20}|{m[4]:^6}|{m[5]:^10}|{m[6]:^12}{nl}\
+                        |{"NEW VALUES:":>12}|{" ":15}|{" ":13}|{nwt_upd:^10}|{" ":20}|{pkg_upd:^6}|{" ":10}|{ " ":12}'
+
+    elif exists_equ:
         update_booking(conn, booking)
-        debug_format = f"UPDATE: | {m[0]:<13} | {m[1]:11} | {str(m[2]):<9} | {m[3]:18} | {m[4]:<4} | {m[5]:8}"
+        debug_format = f'{"OVERWRITE:":>12}|{m[0]:^15}|{m[1]:^13}|{m[2]:^10}|{m[3]:^20}|{m[4]:^6}|{m[5]:^10}|{m[6]:^11}'
 
     else:
-        pass   
-    
+        return  
+
+    if not os.path.exists(log_filename):
+        with open(log_filename, 'w') as f:
+            f.write(f'{"DATE & TIME:":^24}|{"STATUS:":^12}|{"REF:":^15}|{"EQU:":^13}|{"NWT:":^10}|{"MRN:":^20}|{"PKG:":^6}|{"ABS:":^10}|{"DAT:":^11}{nl}')
+
     logging_file.debug_logger(debug_format, log_filename)
 
     return cur.lastrowid
+
 
 def update_booking(conn, booking):
     """
@@ -80,15 +113,56 @@ def update_booking(conn, booking):
     """
 
     sql = ''' UPDATE bookings
-                SET ref = ? ,
-                    nwt = ? ,
-                    mrn = ? ,
-                    pkg = ? ,
-                    abs = ?
+                SET ref = ?,
+                    nwt = ?,
+                    mrn = ?,
+                    pkg = ?,
+                    abs = ?,
+                    dat = ?
                 WHERE equ = ? '''
     cur = conn.cursor()
     cur.execute(sql, booking)
     conn.commit()
+
+def update_booking_3_param(conn, booking):
+    """
+    Similar to 'update booking'-function but if ref,
+    equ and dat are found on the same row,
+    it will increment nwt and pkg.
+
+    :param conn: connection to the SQLite database.
+    :param booking: data from 'pdf_parser.py'.
+    """
+
+    sql = ''' UPDATE bookings
+                SET ref = ?,
+                    equ = ?,
+                    nwt = nwt + ?,
+                    mrn = ?,
+                    pkg = pkg + ?,
+                    abs = ?,
+                    dat = ?
+                WHERE ref = ? AND equ = ? AND dat = ?'''
+
+    cur = conn.cursor()
+    cur.execute(sql, (booking[0],
+                        booking[1],
+                        booking[2],
+                        booking[3],
+                        booking[4],
+                        booking[5],
+                        booking[6],
+                        booking[0],
+                        booking[1],
+                        booking[6]))
+
+    cur.execute("SELECT nwt FROM bookings WHERE ref = ? AND equ = ? AND dat = ?", (booking[0], booking[1], booking[6],))
+    nwt = cur.fetchone()
+    cur.execute("SELECT pkg FROM bookings WHERE ref = ? AND equ = ? AND dat = ?", (booking[0], booking[1], booking[6],))
+    pkg = cur.fetchone()               
+    conn.commit()
+
+    return {"nwt": nwt, "pkg": pkg}
 
 def delete_booking(conn, id):
     """
@@ -136,7 +210,8 @@ def main():
                                         nwt float,
                                         mrn text,
                                         pkg integer,
-                                        abs text
+                                        abs text,
+                                        dat text
                                     );"""
 
     # Create a database connection

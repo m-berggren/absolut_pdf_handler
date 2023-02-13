@@ -32,7 +32,7 @@ def loop_all_pdfs(conn, directory):
         .mode column
         SELECT * FROM bookings;
     """
-    print(f'{"REF":<13} | {"EQU":<11} | {"NWT":8} | {"MRN":<18} | {"PKG":<4} | {"ABS":<8}')
+    print(f'{"REF":^15}|{"EQU":^13}|{"NWT":^10}|{"MRN":^20}|{"PKG":^6}|{"ABS":^10}|{"DAT":^12}')
 
     for filename in os.listdir(directory):
 
@@ -41,12 +41,13 @@ def loop_all_pdfs(conn, directory):
 
             if booking[1]:
                 sqlite_db.create_booking(conn, booking, log_filename)
-                print(f'{booking[0]:<13} | {booking[1]:<11} | {booking[2]:<5.2f} | {booking[3]:18} | {booking[4]:<4} | {booking[5]:8}')
+                print(f'{booking[0]:^15}|{booking[1]:^13}|{booking[2]:^10}|{booking[3]:^20}|{booking[4]:^6}|{booking[5]:^10}|{booking[6]:^12}')
 
             else:
                 continue
         else:
             print("No PDF and/or does not start with (1)")
+    conn.close()
 
 def delete_all_bookings(conn):
     """
@@ -66,3 +67,4 @@ def delete_booking_by_id(conn, id):
     sqlite_db.delete_booking(conn, id)
 
 loop_all_pdfs(conn, pdf_directory)
+#delete_all_bookings(conn)

@@ -31,6 +31,7 @@ def pdf_parser(pdf):
     EQU = "CONT:"
     MRN = "MRN no:"
     ABS = "Reference No."
+    DAT = "Place and date"
 
     ROOT_DIR = os.path.abspath('')
     config_path = '\\'.join([ROOT_DIR, 'config.json'])
@@ -71,7 +72,7 @@ def pdf_parser(pdf):
 
     total_height = 0.0
     total_words = []
-    ref, pkg, nwt, equ, mrn, abs = "", "", "", "", "", ""
+    ref, pkg, nwt, equ, mrn, abs, dat = "", "", "", "", "", "", ""
 
     for page in doc:
         word_list = page.get_text("words")
@@ -84,6 +85,7 @@ def pdf_parser(pdf):
         equ = alter_values(equ, EQU)
         mrn = alter_values(mrn, MRN)
         abs = alter_values(abs, ABS)
+        dat = alter_values(dat, DAT)
         
         total_height += page.rect.height
 
@@ -115,6 +117,11 @@ def pdf_parser(pdf):
 
     try:
         abs = abs + (0, 8, 0, 13)
+    except TypeError as error:
+        print(error)
+
+    try:
+        dat = dat + (192, 9, 206, 13)
     except TypeError as error:
         print(error)
 
@@ -163,13 +170,19 @@ def pdf_parser(pdf):
     except (IndexError, TypeError) as error:
         abs = ""
 
+    try:
+        dat = get_word_in_rect(dat)
+    except (IndexError, TypeError) as error:
+        dat = ""
+
     booking_dict = {
             'ref': ref,
             'equ': equ,
             'nwt': nwt,
             'mrn': mrn,
             'pkg': pkg,
-            'abs': abs
+            'abs': abs,
+            'dat': dat
             }
 
     return booking_dict
@@ -180,17 +193,17 @@ def create_booking(pdf_name):
     Calls the pdf_parser() function, return data in tuple for SQLite Db.
     
     :param pdf_name: name of the PDF file to be used.
-    :return: (ref, equ, nwt, mrn, pkg, abs) returned in a tuple.
+    :return: (ref, equ, nwt, mrn, pkg, abs, dat) returned in a tuple.
     """
 
     m = pdf_parser(pdf_name)
-    data = (m['ref'], m['equ'], m['nwt'], m['mrn'], m['pkg'], m['abs'])
+    data = (m['ref'], m['equ'], m['nwt'], m['mrn'], m['pkg'], m['abs'], m['dat'])
 
     return data
 
 
 if __name__ == '__main__':
     #print(pdf_parser(r'(1) 51062492_149033S.pdf')) #file is faulty, missing ref. Good practise example.
-    print(pdf_parser(r'(1) 51063742_147126S.pdf')) #file is faulty, missing mrn. Good practise example.
+    print(pdf_parser(r'(1) 51059536_144054S.pdf')) #file is faulty, missing mrn. Good practise example.
 
     
