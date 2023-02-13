@@ -3,6 +3,7 @@ venv
 config.json
 
 #exclude all pdf files but .gitkeep in below folders
+sqlite/*
 docs/downloaded_pdfs/*
 docs/downloaded_pdfs_outliers/*
 docs/parsed_pdfs/*
