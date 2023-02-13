@@ -6,6 +6,8 @@ config.json
 docs/downloaded_pdfs/*
 docs/downloaded_pdfs_outliers/*
 docs/parsed_pdfs/*
+docs/not_readable_pdfs/*
 !downloaded_pdfs/.gitkeep
 !docs/downloaded_pdfs_outliers/.gitkeep
 !docs/parsed_pdfs/.gitkeep
+!docs/not_readable_pdfs/.gitkeep

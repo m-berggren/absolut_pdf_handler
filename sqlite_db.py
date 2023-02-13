@@ -39,15 +39,9 @@ def create_table(conn, create_table_sql):
 def create_booking(conn, booking, log_filename):
     """
     Create_booking does several things:
-        - If equ does not exist it creates a new row in Db and write to log file.
-        - If abs already exists it will not add to Db or log file.
-        - If ref, equ and dat exists it will increment values of nwt and pkg in Db.
-          It will add "ADD NWT,PKG:" to log file but not the incremented values.
-
-
-    Create a new booking into the bookings table,
-    or if equ exists then update entire row.
-    Prints data to a log file, with 'NEW' or 'UPDATE'.
+        - If equ does not exist it creates a new row in Db and writes to log file.
+        - If abs already exists it will skip all steps and not add to Db or log file.
+        - If both equ and dat on same row exists it will increment values of nwt and pkg in Db and log file.
 
     :param conn: connection to the SQLite database.
     :param booking: data from 'pdf_parser.py'.
@@ -62,7 +56,7 @@ def create_booking(conn, booking, log_filename):
     cur.execute("SELECT id FROM bookings WHERE abs = ?", (booking[5],))
     exists_abs = cur.fetchone()
 
-    cur.execute("SELECT id FROM bookings WHERE ref = ? AND equ = ? AND dat = ?", (booking[0], booking[1], booking[6],))
+    cur.execute("SELECT id FROM bookings WHERE equ = ? AND dat = ?", (booking[1], booking[6],))
     exists_ref_equ_dat = cur.fetchone()
     
     m = booking
@@ -86,18 +80,18 @@ def create_booking(conn, booking, log_filename):
         pkg_upd = info["pkg"][0]
 
         debug_format = f'{"ADDED:":>12}|{m[0]:^15}|{m[1]:^13}|{nwt:^10}|{m[3]:^20}|{m[4]:^6}|{m[5]:^10}|{m[6]:^12}{nl}\
-                        |{"NEW VALUES:":>12}|{" ":15}|{" ":13}|{nwt_upd:^10}|{" ":20}|{pkg_upd:^6}|{" ":10}|{ " ":12}'
+                        |{"NEW VALUES:":>13}|{" ":15}|{" ":13}|{nwt_upd:^10}|{" ":20}|{pkg_upd:^6}|{" ":10}|{ " ":12}'
 
     elif exists_equ:
         update_booking(conn, booking)
-        debug_format = f'{"OVERWRITE:":>12}|{m[0]:^15}|{m[1]:^13}|{m[2]:^10}|{m[3]:^20}|{m[4]:^6}|{m[5]:^10}|{m[6]:^11}'
+        debug_format = f'{"OVERWRITE:":>12}|{m[0]:^15}|{m[1]:^13}|{m[2]:^10}|{m[3]:^20}|{m[4]:^6}|{m[5]:^10}|{m[6]:^12}'
 
     else:
         return  
 
     if not os.path.exists(log_filename):
         with open(log_filename, 'w') as f:
-            f.write(f'{"DATE & TIME:":^24}|{"STATUS:":^12}|{"REF:":^15}|{"EQU:":^13}|{"NWT:":^10}|{"MRN:":^20}|{"PKG:":^6}|{"ABS:":^10}|{"DAT:":^11}{nl}')
+            f.write(f'{"DATE & TIME:":^24}|{"STATUS:":^13}|{"REF:":^15}|{"EQU:":^13}|{"NWT:":^10}|{"MRN:":^20}|{"PKG:":^6}|{"ABS:":^10}|{"DAT:":^12}{nl}')
 
     logging_file.debug_logger(debug_format, log_filename)
 
