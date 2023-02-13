@@ -1,4 +1,4 @@
-# ABSOLUT PARSE PDF
+# ABSOLUT PDF PARSER
 Program created to download pdf files from an Outlook folder and parse the data from these files into a local SQLite database.
 
 ## Requirements.txt
