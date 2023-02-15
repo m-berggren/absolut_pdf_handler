@@ -1,7 +1,7 @@
 import win32com.client
 import os
 import json
-
+from datetime import datetime
 
 ROOT_DIR = os.path.abspath('')
 config_path = '\\'.join([ROOT_DIR, 'config.json'])
@@ -41,18 +41,22 @@ def download_pdfs_in_folder():
 
         for i in range(mail_count, 0, -1):
             mail = iter_folder.Items[i]
-
+            
             if '_MailItem' in str(type(mail)):
-                print(type(mail))
-
+                
                 if mail.Attachments.Count > 0:
-
                     for attachment in mail.Attachments:
                         attachment.SaveAsFile(os.path.join(save_as_path, attachment.FileName))
+                        print(f'{datetime.now()} - Attachment {attachment.FileName} saved to {PDF_DIR}.')
+
+                        if mail.UnRead:
+                                mail.UnRead = False
+
                         try:
                             mail.Move(move_to_folder)
                         except Exception:
-                            print(f"Cannot move file to {TO_FOLDER}")
+                            print(f"Cannot move email with attachment {attachment.FileName} to {TO_FOLDER}")
+
                 else: continue
 
     else:

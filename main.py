@@ -72,10 +72,12 @@ def delete_all_bookings(conn):
     
     :param conn: connection to SQLite .db file.
     """
-
+    
     sqlite_db.delete_all_bookings(conn)
-    os.remove('bookings.log')
 
+    if os.path.isfile('bookings.log'):
+        os.remove('bookings.log')
+    
     for filename in os.listdir(move_to_dir):
 
         if filename == ".gitkeep": continue
@@ -101,5 +103,6 @@ def delete_booking_by_id(conn, id):
     """
     sqlite_db.delete_booking(conn, id)
 
-loop_all_pdfs(conn)
-#delete_all_bookings(conn)
+if __name__ == '__main__':
+    loop_all_pdfs(conn)
+    #delete_all_bookings(conn)

@@ -167,10 +167,12 @@ def delete_booking(conn, id):
     """
 
     sql = ' DELETE FROM bookings WHERE id = ? '
+    
     cur = conn.cursor()
     cur.execute(sql, (id,))
     conn.commit()
 
+    
 def delete_all_bookings(conn):
     """
     Delete all rows in bookings table.
@@ -179,9 +181,13 @@ def delete_all_bookings(conn):
     """
 
     sql = 'DELETE FROM bookings'
-    cur = conn.cursor()
-    cur.execute(sql)
-    conn.commit()
+    
+    try:
+        cur = conn.cursor()
+        cur.execute(sql)
+        conn.commit()
+    except sqlite3.OperationalError as e:
+        print("Error:", e)
 
 def main():
     """
