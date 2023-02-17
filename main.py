@@ -1,6 +1,8 @@
 import json
 import os
+import logging
 import shutil
+from tqdm import tqdm
 
 import pdf_parser
 import sqlite_db
@@ -12,13 +14,20 @@ with open(config_path) as cfile:
     config = json.load(cfile)
     directories = config['directories']
 
+logger = logging.getLogger('general_debug')
+logger.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s : %(name)s : %(levelname)s : %(message)s')
+file_handler = logging.FileHandler(directories['debug_general_log'])
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+
 conn = sqlite_db.create_connection(directories['db_file'])
 pdf_directory = directories['pdf_dir']
-log_filename = directories['log_file']
 
 full_pdf_path = os.path.join(ROOT_DIR, directories['pdf_dir'].replace("/", "\\"))
 move_to_dir = os.path.join(ROOT_DIR, directories['move_to_dir'].replace("/", "\\"))
 not_readable_dir = os.path.join(ROOT_DIR, directories['not_readable_dir'].replace("/", "\\"))
+duplicates_dir = os.path.join(ROOT_DIR, directories['duplicate_bookings'].replace("/", "\\"))
 
 
 def loop_all_pdfs(conn):
@@ -38,53 +47,74 @@ def loop_all_pdfs(conn):
         SELECT * FROM bookings;
     """
 
-    for filename in os.listdir(pdf_directory):
+
+    for filename in tqdm(os.listdir(pdf_directory), desc='Parsed PDF counter', unit='PDFs'):
 
         if filename.endswith('.pdf') and filename.startswith('(1)'):
             booking = pdf_parser.create_booking(filename)
 
+            # Booking[1] is equ (container).
             if booking[1]:
-                sqlite_db.create_booking(conn, booking, log_filename)
+                sqlite_db.execute_sqlite(conn, booking)
                 try:
                     shutil.move(os.path.join(full_pdf_path, filename), move_to_dir)
                 except (PermissionError, shutil.Error)as e:
-                    print(e)
-    
-                print(f'{booking[0]:^15}|{booking[1]:^13}|{booking[2]:^10}|{booking[3]:^20}|{booking[4]:^6}|{booking[5]:^10}|{booking[6]:^12}')
+                    logger.debug(e)
+                    shutil.move(os.path.join(full_pdf_path, filename), duplicates_dir)
+
 
             else:
                 try:
                     shutil.move(os.path.join(full_pdf_path, filename), not_readable_dir)
                 except (PermissionError, shutil.Error)as e:
-                    print(e)
+                    logger.debug(e)
+                    shutil.move(os.path.join(full_pdf_path, filename), duplicates_dir)
                 continue
         else:
             if filename == ".gitkeep": continue
-            shutil.move(os.path.join(full_pdf_path, filename), not_readable_dir)
-            print("No PDF and/or does not start with (1)")
+
+            try:
+                shutil.move(os.path.join(full_pdf_path, filename), not_readable_dir)
+                logger.debug(f'No PDF and/or does not start with (1). Moved to {not_readable_dir}.')
+            except (PermissionError, shutil.Error)as e:
+                logger.debug(e)
+                shutil.move(os.path.join(full_pdf_path, filename), duplicates_dir)
 
     conn.close()
+    logging.shutdown()
 
 def delete_all_bookings(conn):
     """
     Removes all booking data from SQLite Db file, bookings.log
     and move all PDF files back to download folder.
-    
+
     :param conn: connection to SQLite .db file.
     """
-    
-    sqlite_db.delete_all_bookings(conn)
 
-    if os.path.isfile('bookings.log'):
-        os.remove('bookings.log')
-    
-    for filename in os.listdir(move_to_dir):
+    logging.shutdown()
+
+    sqlite_db.delete_all_bookings(conn)
+    print(directories['bookings_log'])
+    if os.path.isfile(directories['bookings_log']):
+        os.remove(directories['bookings_log'])
+
+    if os.path.isfile(directories['debug_general_log']):
+        os.remove(directories['debug_general_log'])
+
+    if os.path.isfile(directories['debug_sqlite_db']):
+        os.remove(directories['debug_sqlite_db'])
+
+    if os.path.isfile(directories['debug_outlook_dl']):
+        os.remove(directories['debug_outlook_dl'])
+
+
+    for filename in tqdm(os.listdir(move_to_dir), desc='Moving PDF counter', unit='PDFs'):
 
         if filename == ".gitkeep": continue
         try:
             shutil.move(os.path.join(move_to_dir, filename), full_pdf_path)
-        except (PermissionError, shutil.Error)as e:
-            print(e)
+        except (PermissionError, shutil.Error) as e:
+            logger.debug(e)
 
     for filename in os.listdir(not_readable_dir):
         if filename == ".gitkeep": continue
@@ -92,12 +122,14 @@ def delete_all_bookings(conn):
             try:
                 shutil.move(os.path.join(not_readable_dir, filename), full_pdf_path)
             except (PermissionError, shutil.Error)as e:
-                print(e)
+                logger.debug(e)
+
+
 
 def delete_booking_by_id(conn, id):
     """
     Removes row id from SQLite .db file.
-    
+
     :param conn: connection to SQLite .db file.
     :param id: what row id to remove in .db file.
     """

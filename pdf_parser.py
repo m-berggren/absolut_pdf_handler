@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 
 import fitz
@@ -43,6 +44,7 @@ def pdf_parser(pdf):
     PDF_DIR = directories['pdf_dir']
     file_path = '\\'.join([ROOT_DIR, PDF_DIR, pdf])
 
+
     # Read pdf file
     with open(file_path) as fp:
         doc = fitz.open(fp)
@@ -62,8 +64,9 @@ def pdf_parser(pdf):
             try:
                 val = val[0]
                 val += (0, total_height, 0, total_height)
-            except:
-                pass
+            except (TypeError, IndexError) as e:
+                ""
+    
         return val
 
     """
@@ -92,38 +95,38 @@ def pdf_parser(pdf):
     # Adjust rectangles to get the correct return value/word.
     try:
         ref = ref + (0, 9, 40, 13)
-    except TypeError as error:
-        print(error)
+    except TypeError as e:
+        ""
 
     try:
         pkg = pkg + (204, 0, 230, 0)
-    except TypeError as error:
-        print(error)
+    except TypeError as e:
+        ""
 
     try:
         nwt = nwt + (300, 0, 261, 0)
-    except TypeError as error:
-        print(error)
+    except TypeError as e:
+        ""
 
     try:
         equ = equ + (42, 0, 84, 0)
-    except TypeError as error:
-        print(error)
+    except TypeError as e:
+        ""
 
     try:
         mrn = mrn + (48, 0, 114, 0)
-    except TypeError as error:
-        print(error)
+    except TypeError as e:
+        ""
 
     try:
         abs = abs + (0, 8, 0, 13)
-    except TypeError as error:
-        print(error)
+    except TypeError as e:
+        ""
 
     try:
         dat = dat + (192, 9, 206, 13)
-    except TypeError as error:
-        print(error)
+    except TypeError:
+        ""
 
     def get_word_in_rect(rect):
         """ 
@@ -135,44 +138,44 @@ def pdf_parser(pdf):
     
         try:
             return [word[4] for word in total_words if fitz.Rect(word[:4]).intersects(rect)][0]
-        except ValueError as error:
+        except ValueError:
             return ""
-
+            
     try:
         ref = get_word_in_rect(ref)
-    except (IndexError, TypeError) as error:
+    except (IndexError, TypeError) as e:
         ref = ""
 
     try:
         pkg = int(get_word_in_rect(pkg))
-    except (IndexError, TypeError) as error:
+    except (IndexError, TypeError) as e:
         pkg = 0
 
     try:
         nwt = float(get_word_in_rect(nwt).replace(",", "."))
-    except (IndexError, TypeError) as error:
+    except (IndexError, TypeError, ValueError) as e:
         nwt = 0.0
 
     try:
         equ = get_word_in_rect(equ)
         if len(equ) < 11:
             equ = ""
-    except (IndexError, TypeError) as error:
+    except (IndexError, TypeError) as e:
         equ = ""
 
     try:
         mrn = get_word_in_rect(mrn)
-    except (IndexError, TypeError) as error:
+    except (IndexError, TypeError) as e:
         mrn = ""
 
     try:
         abs = get_word_in_rect(abs)
-    except (IndexError, TypeError) as error:
+    except (IndexError, TypeError) as e:
         abs = ""
 
     try:
         dat = get_word_in_rect(dat)
-    except (IndexError, TypeError) as error:
+    except (IndexError, TypeError) as e:
         dat = ""
 
     booking_dict = {
