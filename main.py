@@ -125,7 +125,6 @@ def delete_all_bookings(conn):
                 logger.debug(e)
 
 
-
 def delete_booking_by_id(conn, id):
     """
     Removes row id from SQLite .db file.
