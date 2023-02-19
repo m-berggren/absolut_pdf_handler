@@ -71,5 +71,4 @@ def download_pdfs_in_folder():
         logger4.debug(f"No items found in: {FOLDER5}")
 
 if __name__ == '__main__':
-
     download_pdfs_in_folder()

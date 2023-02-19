@@ -134,6 +134,7 @@ def pdf_parser(pdf):
     if container:
         if len(container) < 11:
             container = ""
+    else: container = ""
     
     if not mrn_number: mrn_number = ""
     if not absolut: absolut = ""
