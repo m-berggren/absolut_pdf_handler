@@ -52,9 +52,9 @@ def loop_all_pdfs(conn):
 
         if filename.endswith('.pdf') and filename.startswith('(1)'):
             booking = pdf_parser.create_booking(filename)
-
-            # Booking[1] is equ (container).
-            if booking[1]:
+            equipment = booking[1]
+            
+            if equipment:
                 sqlite_db.execute_sqlite(conn, booking)
                 try:
                     shutil.move(os.path.join(full_pdf_path, filename), move_to_dir)

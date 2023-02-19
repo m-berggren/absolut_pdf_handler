@@ -12,7 +12,6 @@ sqlite/*
 docs/duplicate_bookings/*
 !docs/duplicate_bookings/.gitkeep
 
-
 docs/downloaded_pdfs/*
 !downloaded_pdfs/.gitkeep
 

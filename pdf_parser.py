@@ -16,12 +16,12 @@ def pdf_parser(pdf):
             where rectangles intersect.
 
     Gathered data:
-        - MLO booking ref (ref)
-        - Container number (equ)
-        - Net weight (nwt)
-        - Movement Reference Number (mrn)
+        - MLO booking reference (reference)
+        - Container number (container)
+        - Net weight (net_weight)
+        - Movement Reference Number (mrn_number)
         - Packages (pgk)
-        - Ref from Absolut (abs)
+        - Ref from Absolut (absolut)
 
     :param pdf: pdf file to iterate through.
     """
@@ -39,17 +39,16 @@ def pdf_parser(pdf):
 
     with open(config_path) as cfile:
         config = json.load(cfile)
-        directories = config['directories']
 
-    PDF_DIR = directories['pdf_dir']
-    file_path = '\\'.join([ROOT_DIR, PDF_DIR, pdf])
+    pdf_dir = config['directories']['pdf_dir']
+    file_path = '\\'.join([ROOT_DIR, pdf_dir, pdf])
 
 
     # Read pdf file
-    with open(file_path) as fp:
-        doc = fitz.open(fp)
+    with open(file_path) as f:
+        doc = fitz.open(f)
 
-    def alter_values(val, const_val):
+    def search_string_and_alter_rectangle(variable, rectangle, match):
         """
         Function to determine if a word exist on page,
         if not it adds to total height on y-values.
@@ -59,15 +58,14 @@ def pdf_parser(pdf):
         :return: rectangle coordinates (x0, y0, x1, y1).
         """
 
-        if not val:
-            val = page.search_for(const_val)
-            try:
-                val = val[0]
-                val += (0, total_height, 0, total_height)
-            except (TypeError, IndexError) as e:
-                ""
-    
-        return val
+        if not variable:
+            variable = page.search_for(match)
+            if variable:
+                variable = variable[0]
+                variable += (0, total_height, 0, total_height)
+                variable += rectangle
+                return variable
+        return variable
 
     """
     Main loop with variables below:
@@ -75,58 +73,31 @@ def pdf_parser(pdf):
 
     total_height = 0.0
     total_words = []
-    ref, pkg, nwt, equ, mrn, abs, dat = "", "", "", "", "", "", ""
+    reference, package, net_weight, container, mrn_number, absolut, date_sent = "", 0, 0.0, "", "", "", ""
+
+    ref_rect = (0, 9, 40, 13)
+    pkg_rect = (204, 0, 230, 0)
+    nwt_rect = (300, 0, 261, 0)
+    equ_rect = (42, 0, 84, 0)
+    mrn_rect = (48, 0, 114, 0)
+    abs_rect = (0, 8, 0, 13)
+    dat_rect = (192, 9, 206, 13)
 
     for page in doc:
         word_list = page.get_text("words")
         for w in word_list:
             total_words.append([w[0], w[1] + total_height, w[2], w[3] + total_height, w[4]])
 
-        ref = alter_values(ref, REF)
-        pkg = alter_values(pkg, PKG)
-        nwt = alter_values(nwt, NWT)
-        equ = alter_values(equ, EQU)
-        mrn = alter_values(mrn, MRN)
-        abs = alter_values(abs, ABS)
-        dat = alter_values(dat, DAT)
+        reference = search_string_and_alter_rectangle(reference, ref_rect, REF)
+        package = search_string_and_alter_rectangle(package, pkg_rect, PKG)
+        net_weight = search_string_and_alter_rectangle(net_weight, nwt_rect, NWT)
+        container = search_string_and_alter_rectangle(container, equ_rect, EQU)
+        mrn_number = search_string_and_alter_rectangle(mrn_number, mrn_rect, MRN)
+        absolut = search_string_and_alter_rectangle(absolut, abs_rect, ABS)
+        date_sent = search_string_and_alter_rectangle(date_sent, dat_rect, DAT)
         
         total_height += page.rect.height
 
-    # Adjust rectangles to get the correct return value/word.
-    try:
-        ref = ref + (0, 9, 40, 13)
-    except TypeError as e:
-        ""
-
-    try:
-        pkg = pkg + (204, 0, 230, 0)
-    except TypeError as e:
-        ""
-
-    try:
-        nwt = nwt + (300, 0, 261, 0)
-    except TypeError as e:
-        ""
-
-    try:
-        equ = equ + (42, 0, 84, 0)
-    except TypeError as e:
-        ""
-
-    try:
-        mrn = mrn + (48, 0, 114, 0)
-    except TypeError as e:
-        ""
-
-    try:
-        abs = abs + (0, 8, 0, 13)
-    except TypeError as e:
-        ""
-
-    try:
-        dat = dat + (192, 9, 206, 13)
-    except TypeError:
-        ""
 
     def get_word_in_rect(rect):
         """ 
@@ -135,57 +106,48 @@ def pdf_parser(pdf):
         :param rect: rectangle values.
         :return: word found where rectangles intersect or nothing if error.
         """
-    
-        try:
-            return [word[4] for word in total_words if fitz.Rect(word[:4]).intersects(rect)][0]
-        except ValueError:
-            return ""
+
+        if rect:
+            try:
+                return [word[4] for word in total_words if fitz.Rect(word[:4]).intersects(rect) and rect][0]
+            except (ValueError, IndexError):
+                return ""
+
             
-    try:
-        ref = get_word_in_rect(ref)
-    except (IndexError, TypeError) as e:
-        ref = ""
+    reference = get_word_in_rect(reference)
+    package = get_word_in_rect(package)
+    net_weight = get_word_in_rect(net_weight)
+    container = get_word_in_rect(container)
+    mrn_number = get_word_in_rect(mrn_number)
+    absolut = get_word_in_rect(absolut)
+    date_sent = get_word_in_rect(date_sent)
 
-    try:
-        pkg = int(get_word_in_rect(pkg))
-    except (IndexError, TypeError) as e:
-        pkg = 0
+    if not reference: reference = ""
+    if package:
+        package = int(package)
+    else: package = 0
 
-    try:
-        nwt = float(get_word_in_rect(nwt).replace(",", "."))
-    except (IndexError, TypeError, ValueError) as e:
-        nwt = 0.0
+    if net_weight:
+        net_weight = float(net_weight.replace(",", "."))
+    else: net_weight = 0.0
 
-    try:
-        equ = get_word_in_rect(equ)
-        if len(equ) < 11:
-            equ = ""
-    except (IndexError, TypeError) as e:
-        equ = ""
-
-    try:
-        mrn = get_word_in_rect(mrn)
-    except (IndexError, TypeError) as e:
-        mrn = ""
-
-    try:
-        abs = get_word_in_rect(abs)
-    except (IndexError, TypeError) as e:
-        abs = ""
-
-    try:
-        dat = get_word_in_rect(dat)
-    except (IndexError, TypeError) as e:
-        dat = ""
+    if container:
+        if len(container) < 11:
+            container = ""
+    
+    if not mrn_number: mrn_number = ""
+    if not absolut: absolut = ""
+    if not date_sent: date_sent = ""
+    
 
     booking_dict = {
-            'ref': ref,
-            'equ': equ,
-            'nwt': nwt,
-            'mrn': mrn,
-            'pkg': pkg,
-            'abs': abs,
-            'dat': dat
+            'reference': reference,
+            'container': container,
+            'net_weight': net_weight,
+            'mrn_number': mrn_number,
+            'package': package,
+            'absolut': absolut,
+            'date_sent': date_sent
             }
 
     return booking_dict
@@ -196,17 +158,16 @@ def create_booking(pdf_name):
     Calls the pdf_parser() function, return data in tuple for SQLite Db.
     
     :param pdf_name: name of the PDF file to be used.
-    :return: (ref, equ, nwt, mrn, pkg, abs, dat) returned in a tuple.
+    :return: (reference, container, net_weight, mrn_number, package, absolut, date_sent) returned in a tuple.
     """
 
     m = pdf_parser(pdf_name)
-    data = (m['ref'], m['equ'], m['nwt'], m['mrn'], m['pkg'], m['abs'], m['dat'])
+    data = (m['reference'], m['container'], m['net_weight'], m['mrn_number'], m['package'], m['absolut'], m['date_sent'])
 
     return data
 
 
 if __name__ == '__main__':
-    #print(pdf_parser(r'(1) 51062492_149033S.pdf')) #file is faulty, missing ref. Good practise example.
-    print(pdf_parser(r'(1) 51059536_144054S.pdf')) #file is faulty, missing mrn. Good practise example.
+    print(pdf_parser(r'(1) 51067152_149428S.pdf')) 
 
     
