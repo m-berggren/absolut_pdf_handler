@@ -14,10 +14,11 @@ with open(config_path) as cfile:
     config = json.load(cfile)
     directories = config['directories']
 
-logger = logging.getLogger('general_debug')
+logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s : %(name)s : %(levelname)s : %(message)s')
 file_handler = logging.FileHandler(directories['debug_general_log'])
+file_handler.setLevel(logging.INFO)
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
@@ -57,28 +58,26 @@ def loop_all_pdfs(conn):
             if equipment:
                 sqlite_db.execute_sqlite(conn, booking)
                 try:
-                    shutil.move(os.path.join(full_pdf_path, filename), move_to_dir)
+                    shutil.move(os.path.join(full_pdf_path, filename), os.path.join(move_to_dir, filename))
                 except (PermissionError, shutil.Error)as e:
                     logger.debug(e)
-                    shutil.move(os.path.join(full_pdf_path, filename), duplicates_dir)
-
 
             else:
                 try:
-                    shutil.move(os.path.join(full_pdf_path, filename), not_readable_dir)
+                    shutil.move(os.path.join(full_pdf_path, filename), os.path.join(not_readable_dir, filename))
+                    logger.info(f'No container number found in {filename}, moved to {os.path.basename(not_readable_dir)}.')
+
                 except (PermissionError, shutil.Error)as e:
                     logger.debug(e)
-                    shutil.move(os.path.join(full_pdf_path, filename), duplicates_dir)
-                continue
+                
         else:
             if filename == ".gitkeep": continue
 
             try:
-                shutil.move(os.path.join(full_pdf_path, filename), not_readable_dir)
-                logger.debug(f'No PDF and/or does not start with (1). Moved to {not_readable_dir}.')
+                shutil.move(os.path.join(full_pdf_path, filename), os.path.join(not_readable_dir, filename))
+                logger.info(f'{filename} is no PDF and/or does not start with (1), moved to {os.path.basename(not_readable_dir)}.')
             except (PermissionError, shutil.Error)as e:
                 logger.debug(e)
-                shutil.move(os.path.join(full_pdf_path, filename), duplicates_dir)
 
     conn.close()
     logging.shutdown()
@@ -112,7 +111,7 @@ def delete_all_bookings(conn):
 
         if filename == ".gitkeep": continue
         try:
-            shutil.move(os.path.join(move_to_dir, filename), full_pdf_path)
+            shutil.move(os.path.join(move_to_dir, filename), os.path.join(full_pdf_path))
         except (PermissionError, shutil.Error) as e:
             logger.debug(e)
 
@@ -120,7 +119,7 @@ def delete_all_bookings(conn):
         if filename == ".gitkeep": continue
         if filename.startswith('(1)'):
             try:
-                shutil.move(os.path.join(not_readable_dir, filename), full_pdf_path)
+                shutil.move(os.path.join(not_readable_dir, filename), os.path.join(full_pdf_path, filename))
             except (PermissionError, shutil.Error)as e:
                 logger.debug(e)
 

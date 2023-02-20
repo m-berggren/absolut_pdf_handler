@@ -4,6 +4,7 @@ import logging
 import os
 from tqdm import tqdm
 import win32com.client
+import win32ui
 
 ROOT_DIR = os.path.abspath('')
 config_path = '\\'.join([ROOT_DIR, 'config.json'])
@@ -13,7 +14,7 @@ with open(config_path) as cfile:
     directories = config['directories']
     outlook = config['outlook']
 
-logger4 = logging.getLogger('outlook_debug')
+logger4 = logging.getLogger(__name__)
 logger4.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s : %(name)s : %(levelname)s : %(message)s')
 file_handler = logging.FileHandler(directories['debug_outlook_dl'])
@@ -30,14 +31,26 @@ FOLDER5 = outlook['folder5']
 TO_FOLDER = outlook['move_to_folder']
 PDF_DIR = directories['pdf_dir'].replace("/", "\\")
 
+def outlook_window_exists():
+    try:
+        win32ui.FindWindow(None, "Microsoft Outlook")
+        return True
+    except win32ui.error:
+        return False
+
 def download_pdfs_in_folder():
     """
     Loops through all e-mails in a certain folder and downloads
     all PDF attachments locally, then moves that file in Outlook
     to a new folder.
     """
+    
+    if not outlook_window_exists():
+        print("Outlook is not running, please start application and run this file again to download files.")
+        exit()
 
     out_app = win32com.client.gencache.EnsureDispatch('Outlook.Application')
+
     mapi = out_app.GetNamespace('MAPI')
 
     iter_folder = mapi.Folders[EMAIL_ACCOUNT].Folders[FOLDER1].Folders[FOLDER2].Folders[FOLDER3].Folders[FOLDER4].Folders[FOLDER5]

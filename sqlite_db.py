@@ -13,7 +13,7 @@ with open(config_path) as cfile:
 database = directories['db_file']
 
 
-logger1 = logging.getLogger('sqlite_debug')
+logger1 = logging.getLogger(__name__)
 logger1.setLevel(logging.DEBUG)
 formatter1 = logging.Formatter('%(asctime)s : %(name)s : %(levelname)s : %(message)s')
 file_handler1 = logging.FileHandler(directories['debug_sqlite_db'])
