@@ -1,10 +1,11 @@
-from datetime import datetime
 import json
 import logging
 import os
 from tqdm import tqdm
 import win32com.client
+import win32com
 import win32ui
+from pathlib import Path
 
 ROOT_DIR = os.path.abspath('')
 config_path = '\\'.join([ROOT_DIR, 'config.json'])
@@ -49,6 +50,14 @@ def download_pdfs_in_folder():
         print("Outlook is not running, please start application and run this file again to download files.")
         exit()
 
+    """Creates error sometimes - then needed to remove $USERNAME$\AppData\Local\Temp\gen_py folder.
+    New solution is to change 'gen_py' folder so it does not clash with other processes.
+    """
+    home = str(Path.home())
+    gen_py_path = os.path.join(home, "AppData\Local\gen_py")
+    Path(gen_py_path).mkdir(parents=True, exist_ok=True)
+    win32com.__gen_path__ = gen_py_path
+    
     out_app = win32com.client.gencache.EnsureDispatch('Outlook.Application')
 
     mapi = out_app.GetNamespace('MAPI')
