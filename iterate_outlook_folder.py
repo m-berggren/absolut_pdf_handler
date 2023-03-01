@@ -49,12 +49,13 @@ def download_pdfs_in_folder():
     """Creates error sometimes - then needed to remove $USERNAME$\AppData\Local\Temp\gen_py folder.
     New solution is to change 'gen_py' folder so it does not clash with other processes.
     """
-    
     home = str(Path.home())
-    gen_py_path = os.path.join(home, "AppData\Local\gen_py")
+    gen_py_path = os.path.join(home, r"AppData\Local\gen_py\3.10")
     Path(gen_py_path).mkdir(parents=True, exist_ok=True)
     win32com.__gen_path__ = gen_py_path
-    
+
+    """"""
+
     if not outlook_window_exists():
         print("Outlook is not running, please start application and run this file again to download files.")
         exit()
