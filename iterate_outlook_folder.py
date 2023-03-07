@@ -49,18 +49,32 @@ def download_pdfs_in_folder():
     """Creates error sometimes - then needed to remove $USERNAME$\AppData\Local\Temp\gen_py folder.
     New solution is to change 'gen_py' folder so it does not clash with other processes.
     """
-    home = str(Path.home())
-    gen_py_path = os.path.join(home, r"AppData\Local\gen_py\3.10")
-    Path(gen_py_path).mkdir(parents=True, exist_ok=True)
-    win32com.__gen_path__ = gen_py_path
+
+    if win32com.client.gencache.is_readonly == True:
+    
+        #allow gencache to create the cached wrapper objects
+        win32com.client.gencache.is_readonly = False
+    
+        # under p2exe the call in gencache to __init__() does not happen
+        # so we use Rebuild() to force the creation of the gen_py folder
+        win32com.client.gencache.Rebuild()
+    
+        # NB You must ensure that the python...\win32com.client.gen_py dir does not exist
+        # to allow creation of the cache in %temp%
+
+    """Issues for some users with below 4 lines"""
+    #home = str(Path.home())
+    #gen_py_path = os.path.join(home, r"AppData\Local\gen_py\3.10")
+    #Path(gen_py_path).mkdir(parents=True, exist_ok=True)
+    #win32com.__gen_path__ = gen_py_path
+
+    out_app = win32com.client.gencache.EnsureDispatch('Outlook.Application')
 
     """"""
 
     if not outlook_window_exists():
         print("Outlook is not running, please start application and run this file again to download files.")
         exit()
-
-    out_app = win32com.client.gencache.EnsureDispatch('Outlook.Application')
 
     mapi = out_app.GetNamespace('MAPI')
 
