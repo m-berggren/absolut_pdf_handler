@@ -63,12 +63,15 @@ def download_pdfs_in_folder():
         # to allow creation of the cache in %temp%
 
     """Issues for some users with below 4 lines"""
-    #home = str(Path.home())
-    #gen_py_path = os.path.join(home, r"AppData\Local\gen_py\3.10")
-    #Path(gen_py_path).mkdir(parents=True, exist_ok=True)
-    #win32com.__gen_path__ = gen_py_path
 
-    out_app = win32com.client.gencache.EnsureDispatch('Outlook.Application')
+    try:
+        out_app = win32com.client.gencache.EnsureDispatch('Outlook.Application')
+    except:
+        home = str(Path.home())
+        gen_py_path = os.path.join(home, r"AppData\Local\gen_py\3.10")
+        Path(gen_py_path).mkdir(parents=True, exist_ok=True)
+        win32com.__gen_path__ = gen_py_path
+        out_app = win32com.client.gencache.EnsureDispatch('Outlook.Application')
 
     """"""
 
